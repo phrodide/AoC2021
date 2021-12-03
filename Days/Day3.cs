@@ -8,12 +8,13 @@ namespace AoC2021.Days
 {
     internal class Day3
     {
+        public string[] d;
         public Day3()
         {
-
+            d = data.Replace("\n", "").Split('\r').ToArray();
         }
 
-        public string SolvePart1()
+        public string SolvePart1Original()
         {
             int[] array = new int[12];
             int majorityRules = data.Replace("\n", "").Split('\r').Count() / 2;
@@ -41,15 +42,49 @@ namespace AoC2021.Days
                 }
             }
             return (gamma * epsilon).ToString(); ;
+        } 
+        public string SolvePart1()
+        {
+            var len = d.First().TrimEnd().Length;
+            var majorityRules = d.Length / 2;
+            int gamma = 0;
+            int epsilon = 0;
+            for (int i = 0; i < len; i++)
+            {
+                gamma *= 2;
+                epsilon *= 2;
+                var b = (from dd in d select int.Parse(dd.Skip(i).First().ToString())).Sum();
+                gamma += b > majorityRules ? 1 : 0;
+                epsilon += b > majorityRules ? 0 : 1;
+            }
+            return (gamma * epsilon).ToString(); ;
         }
 
-        public string SolvePart2()
+        public string SolvePart2Original()
         {
             IEnumerable<string> oxygen = data.Trim().Replace("\n","").Split('\r');
             IEnumerable<string> co2 = data.Trim().Replace("\n", "").Split('\r');
             int iOxygen = 0;
             int iCO2 = 0;
             for (int i = 0; i < 12; i++)
+            {
+                iOxygen *= 2;
+                iCO2 *= 2;
+                oxygen = FindMostCommonBit(oxygen, i, true, out int o);
+                co2 = FindMostCommonBit(co2, i, false, out int c);
+                iOxygen+=o;
+                iCO2 += c;
+            }
+            return (iOxygen*iCO2).ToString(); ;
+        }
+        public string SolvePart2()
+        {
+            IEnumerable<string> oxygen = d;
+            IEnumerable<string> co2 = d;
+            var len = d.First().TrimEnd().Length;
+            int iOxygen = 0;
+            int iCO2 = 0;
+            for (int i = 0; i < len; i++)
             {
                 iOxygen *= 2;
                 iCO2 *= 2;
@@ -70,46 +105,15 @@ namespace AoC2021.Days
             }
             var one = (from s in input where s.Skip(offset).First() == '1' select s).ToArray();
             var zero = (from s in input where s.Skip(offset).First() == '0' select s).ToArray();
-            if (one.Count() == zero.Count())
+            if ((isOxygen && one.Length == zero.Length) || //return 1 when: Oxygen and equal,
+                (isOxygen && one.Length > zero.Length) || //Oxygen and majority
+                (!isOxygen && one.Length < zero.Length)) // CO2 and minority
             {
-                if (isOxygen)
-                {
-                    bit = 1;
-                    return one;
-                }
-                else
-                {
-                    bit = 0;
-                    return zero;
-                }
+                bit = 1;
+                return one;
             }
-            if (one.Count() > zero.Count())
-            {
-                if (isOxygen)
-                {
-                    bit = 1;
-                    return one;
-                }
-                else
-                {
-                    bit = 0;
-                    return zero;
-
-                }
-            }
-            else
-            {
-                if (isOxygen)
-                {
-                    bit = 0;
-                    return zero;
-                } else
-                {
-                    bit = 1;
-                    return one;
-
-                }
-            }
+            bit = 0;
+            return zero;
         }
 
         public static string data = @"000011110010
