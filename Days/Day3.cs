@@ -53,7 +53,7 @@ namespace AoC2021.Days
             {
                 gamma *= 2;
                 epsilon *= 2;
-                var b = (from dd in d select int.Parse(dd.Skip(i).First().ToString())).Sum();
+                var b = (from dd in d where dd.Skip(i).First()=='1' select dd).Count();
                 gamma += b > majorityRules ? 1 : 0;
                 epsilon += b > majorityRules ? 0 : 1;
             }
