@@ -3,17 +3,107 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using static System.Math;
 
 namespace AoC2021.Days
 {
+    internal class Line
+    {
+        public (int x, int y) Start { get; set; }
+        public (int x, int y) End { get; set; }
+        public Line(IEnumerable<int> ends)
+        {
+            var e = ends.ToArray();
+            Start = (e[0], e[1]);
+            End = (e[2], e[3]);
+        }
+        public bool isStraight 
+        {
+            get => (Start.x==End.x || Start.y==End.y); 
+        }
+        public bool Test(int x, int y)
+        {
+            if (Min(Start.x, End.x) <= x && Min(Start.y, End.y) <= y && Max(Start.x, End.x) >= x && Max(Start.y, End.y) >= y)
+            {
+                //we've drawn a box using the start and end coordinates. On horizontal and vertical lines, the box is 1 pixel wide.
+                //it must be on the line if it is straight.
+                if (isStraight) return true;
+                //at this point it will either be an angle up or angle down (negative or positive). Perform simple math to determine if it is on the 45 degree angle.
+                int dx = (End.x - Start.x);
+                int dy = (End.y - Start.y);
+                int xx = x - Min(Start.x, End.x);//number of pixels right from the upper left corner of the box.
+                int yy = y - Min(Start.y, End.y);//number of pixels down from the upper left corner of the box.
+                int yyy = Max(Start.y, End.y) - y;//number of pixels up from the lower left corner of the box.
+                if (((dx > 0 && dy > 0) || (dx < 0 && dy < 0)) && xx==yy) 
+                    return true;
+                if (((dx > 0 && dy < 0) || (dx < 0 && dy > 0)) && xx==yyy) 
+                    return true;
+
+            }
+
+            return false;
+        }
+    }
     internal class Day5
     {
+        List<Line> lines2 = new List<Line>();
         public Day5()
         {
-
+            var lines = data.Replace("\r\n", "\n").Split('\n');
+            
+            foreach (var line in lines)
+            {
+                lines2.Add(new Line(line.Replace(" -> ", ",").Split(',').Select(int.Parse)));
+            }
         }
 
         public string SolvePart1()
+        {
+            return Enumerable.Range(0, 1000)
+                .AsParallel()
+                .Select(x => Enumerable.Range(0, 1000)
+                                .AsParallel()
+                                .Select(y => lines2
+                                                .AsParallel()
+                                                .Where(line => line.isStraight && line.Test(x, y))
+                                                .Count() > 1 ? 1 : 0).Sum()).Sum().ToString();
+            //above is LINQ Enumerable, below is for loops. Only the LINQ runs.
+            int counter = 0;
+            for (int i = 0; i < 1000; i++)
+            {
+                for (int j = 0; j < 1000; j++)
+                {
+                    counter += lines2.AsParallel().Where(line => line.isStraight && line.Test(i, j)).Count() > 1 ? 1 : 0;
+                }
+            }
+            return counter.ToString();
+        }
+
+        public string SolvePart2()
+        {
+            return Enumerable.Range(0, 1000)
+                .AsParallel()
+                .Select(x => Enumerable.Range(0, 1000)
+                    .AsParallel()
+                    .Select(y => lines2
+                                    .AsParallel()
+                                    .Where(line => line.Test(x, y))
+                                    .Count() > 1 ? 1 : 0).Sum()).Sum().ToString();
+            //same as part 1, except I removed the test for straight lines.
+            //This was just for funzies, but I wanted to show a CPU intensive operation instead of a memory intensive operation.
+            int counter = 0;
+            for (int i = 0; i < 1000; i++)
+            {
+                for (int j = 0; j < 1000; j++)
+                {
+                    counter += lines2.AsParallel().Where(line => line.Test(i, j)).Count() > 1 ? 1 : 0;
+                }
+            }
+            return counter.ToString();
+        }
+
+
+        public string OriginalSolvePart1()
         {
             string[] lines = data.Replace("\r\n", "\n").Split('\n');
             var grid = new Dictionary<(int x, int y),int>();
@@ -53,7 +143,7 @@ namespace AoC2021.Days
             return grid.Where(x => x.Value >1).Count().ToString();
         }
 
-        public string SolvePart2()
+        public string OriginalSolvePart2()
         {
             string[] lines = data.Replace("\r\n", "\n").Split('\n');
             var grid = new Dictionary<(int x, int y), int>();
