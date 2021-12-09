@@ -10,36 +10,34 @@ namespace AoC2021.Days
     {
         public Day9()
         {
+            lines = data.Replace("\r\n", "\n").Split('\n');
+            string[] lines2 = data.Replace("\r\n", "\n").Replace('1', '0').Replace('2', '0').Replace('3', '0').Replace('4', '0').Replace('5', '0').Replace('6', '0').Replace('7', '0').Replace('8', '0').Split('\n');
+            source = new char[lines2.Length][];
+            for (int y = 0; y < lines2.Length; y++)
+            {
+                source[y] = new char[lines2[y].Length];
+                for (int x = 0; x < lines2[y].Length; x++)
+                {
+                    source[y][x] = lines2[y][x];
+                }
+            }
+
 
         }
 
         public int isLowest(int x, int y, string[] source)
         {
             int spot = source[y][x] - '0';
-            int N = 9, S = 9, E = 9, W = 9;
-            if (x-1 >= 0)
-            {
-                //check x-1
-                W = source[y][x-1] - '0';
-            }
-            if (y-1 >= 0)
-            {
-                //check x-1
-                N = source[y-1][x] - '0';
-            }
-            if (x+1 < source[0].Length)
-            {
-                E = source[y][x+1] - '0';
-            }
-            if (y+1 < source.Length)
-            {
-                S = source[y+1][x] - '0';
-            }
+            int N = (y-1 >= 0) ? source[y-1][x] - '0' : 9;
+            int E = (x+1 < source[0].Length) ? source[y][x+1] - '0' : 9;
+            int S = (y+1 < source.Length) ? source[y+1][x] - '0' : 9;
+            int W = (x-1 >= 0) ? source[y][x-1] - '0' : 9;
+            
             if (spot < N && spot < S && spot < E && spot < W)
             {
-                return spot;
+                return spot+1;
             }
-            return -1;
+            return 0;
         }
         public int CountBasin(int x, int y)
         {
@@ -58,50 +56,32 @@ namespace AoC2021.Days
             else return 0;
         }
 
+        string[] lines;
         char[][] source;
 
 
         public string SolvePart1()
         {
-            int counter = 0;
-            string[] lines = data.Replace("\r\n", "\n").Split('\n');
-            for (int y = 0; y < lines.Length; y++)
-            {
-                for (int x = 0; x < lines[y].Length; x++)
-                {
-                    var spot = isLowest(x, y, lines);
-                    if (spot!=-1)
-                    {
-                        counter += 1 + spot;
-                    }
-                }
-            }
-            return counter.ToString();
+            return Enumerable.Range(0, lines.Length)
+                .Select(y => Enumerable.Range(0, lines[y].Length)
+                .Select(x => (int)isLowest(x, y, lines)))
+                .SelectMany(x => x)
+                .Sum()
+                .ToString();
         }
 
         public string SolvePart2()
         {
             List<int> counter = new List<int>();
-            string[] lines = data.Replace("\r\n", "\n").Replace('1','0').Replace('2', '0').Replace('3', '0').Replace('4', '0').Replace('5', '0').Replace('6', '0').Replace('7', '0').Replace('8', '0').Split('\n');
-            source = new char[lines.Length][];
-            for (int y = 0;y < lines.Length;y++)
-            {
-                source[y] = new char[lines[y].Length];
-                for (int x = 0;x < lines[y].Length;x++)
-                {
-                    source[y][x] = lines[y][x];
-                }    
-            }
-            for (int y = 0; y < source.Length; y++)
-            {
-                for (int x = 0; x < source[y].Length; x++)
-                {
-                    int result = CountBasin(x, y);
-                    if (result > 0) counter.Add(result);
-
-                }
-            }
-            return counter.OrderByDescending(x => x).Take(3).Aggregate((a, b) => a * b).ToString();
+            return Enumerable.Range(0, source.Length)
+                .Select(y => Enumerable.Range(0, source[y].Length)
+                .Select(x => CountBasin(x, y))
+                .Where(x => x!=0))
+                .SelectMany(x => x)
+                .OrderByDescending(x => x)
+                .Take(3)
+                .Aggregate((a, b) => a * b)
+                .ToString();
         }
 
         public static string tdata = @"2199943210
