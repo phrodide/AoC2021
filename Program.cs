@@ -1,5 +1,5 @@
 ﻿// See https://aka.ms/new-console-template for more information
-var day = new AoC2021.Days.Day20();
+var day = new AoC2021.Days.Day21();
 Console.WriteLine("Part 1:");
 Console.WriteLine(day.SolvePart1());
 Console.WriteLine("Part 2:");
